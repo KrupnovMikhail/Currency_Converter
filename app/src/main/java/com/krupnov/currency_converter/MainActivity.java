@@ -7,7 +7,9 @@ import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.view.ViewParent;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -28,6 +30,8 @@ import java.util.Iterator;
 public class MainActivity extends AppCompatActivity {
 
     private ListView listView;
+    private JSONObject valute;
+    private ArrayList<JSONObject> list;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,6 +40,19 @@ public class MainActivity extends AppCompatActivity {
 
         DownloadJSONTask task = new DownloadJSONTask();
         task.execute("https://www.cbr-xml-daily.ru/daily_json.js");
+        TextView textView = (TextView) findViewById(R.id.textView);
+        ListView listView = (ListView) findViewById(R.id.listView);
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                JSONObject elementJSON = list.get(i);
+                try {
+                    textView.setText(elementJSON.getString("Nominal") + "  " + elementJSON.getString("Value"));
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
 
 
     }
@@ -78,23 +95,21 @@ public class MainActivity extends AppCompatActivity {
             Log.i("Result", s);
             try {
                 JSONObject jsonObject = new JSONObject(s);
-                JSONObject valute = jsonObject.getJSONObject("Valute");
-                ArrayList<JSONObject> list = new ArrayList<>();
+                valute = jsonObject.getJSONObject("Valute");
+                list = new ArrayList<>();
                 ArrayList<String> data = new ArrayList<>();
                 Iterator<String> my = valute.keys();
                 while (my.hasNext()){
                     String a = my.next();
 //                    Log.i("DATE54", my.next());
                     list.add(valute.getJSONObject(a));
-                    data.add(a);
+                    data.add(a + ":    " + valute.getJSONObject(a).getString("Name"));
 
                 }
                 Log.i("DATA10", data.get(0));
                 ArrayAdapter<String> listadapter = new ArrayAdapter<String>(MainActivity.this, android.R.layout.simple_list_item_1, data);
                 listView = (ListView) findViewById(R.id.listView);
                 listView.setAdapter(listadapter);
-                TextView textView = (TextView) findViewById(R.id.textView);
-                textView.setText(data.get(0));
 
             } catch (JSONException e) {
                 e.printStackTrace();

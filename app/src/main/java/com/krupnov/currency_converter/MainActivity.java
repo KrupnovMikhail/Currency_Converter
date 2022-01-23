@@ -1,6 +1,7 @@
 package com.krupnov.currency_converter;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
@@ -31,6 +32,8 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -54,11 +57,11 @@ public class MainActivity extends AppCompatActivity {
         jsonString = preferences.getString("JSONString", "");
         textViewString = preferences.getString("textViewString", "");
         editTextString = preferences.getString("editTextString", "");
+        SwipeRefreshLayout swipeRefreshLayout = findViewById(R.id.swipe_refresh_layout);
 
-        Toast.makeText(this, Integer.toString(cellNumber), Toast.LENGTH_LONG).show();
         DownloadJSONTask task = new DownloadJSONTask();
-
         task.execute("https://www.cbr-xml-daily.ru/daily_json.js");
+
         TextView textView = (TextView) findViewById(R.id.textView);
         ListView listView = (ListView) findViewById(R.id.listView);
         EditText editText = (EditText) findViewById(R.id.editText);
@@ -140,6 +143,27 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
+
+        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                button.callOnClick();
+                swipeRefreshLayout.setRefreshing(false);
+            }
+        });
+
+        Timer timer = new Timer();
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        button.callOnClick();
+                    }
+                });
+            }
+        }, 0,1000 * 3600);
 
 
     }

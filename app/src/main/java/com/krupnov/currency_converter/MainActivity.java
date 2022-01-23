@@ -51,15 +51,15 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
-
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);    // сохранение данных, чтобы после поворота экрана
+                                                                                                       // и перезапуска приложения данные оставались старые
         cellNumber = preferences.getInt("cellNumber", -1);
         jsonString = preferences.getString("JSONString", "");
         textViewString = preferences.getString("textViewString", "");
         editTextString = preferences.getString("editTextString", "");
         SwipeRefreshLayout swipeRefreshLayout = findViewById(R.id.swipe_refresh_layout);
 
-        DownloadJSONTask task = new DownloadJSONTask();
+        DownloadJSONTask task = new DownloadJSONTask();             // загружает данные сбербанка в listView
         task.execute("https://www.cbr-xml-daily.ru/daily_json.js");
 
         TextView textView = (TextView) findViewById(R.id.textView);
@@ -70,7 +70,7 @@ public class MainActivity extends AppCompatActivity {
         textView.setText(textViewString);
 
 
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {         // Здесь задаем слушатель нажатия на элементы списка
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                 JSONObject elementJSON = list.get(i);
@@ -81,8 +81,8 @@ public class MainActivity extends AppCompatActivity {
                     double nominal = Double.parseDouble(elementJSON.getString("Nominal"));
                     double value = Double.parseDouble(elementJSON.getString("Value"));
                     double result = number/(value/nominal);
-                    BigDecimal resultEnd = new BigDecimal(result);
-                    resultEnd = resultEnd.setScale(4, RoundingMode.DOWN);
+                    BigDecimal resultEnd = new BigDecimal(result);                           // выбрал BigDecimal т.к. удобно выбирать количество
+                    resultEnd = resultEnd.setScale(4, RoundingMode.DOWN);           // знаков после запятой и стиль характер округления
                     textView.setText(listValuteName.get(i) + ": " + resultEnd.toString());
                     preferences.edit().putString("textViewString", listValuteName.get(i) + ": " + resultEnd.toString()).apply();
                 } catch (JSONException e) {
@@ -95,9 +95,9 @@ public class MainActivity extends AppCompatActivity {
         });
 
 
-        editText.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+        editText.addTextChangedListener(new TextWatcher() {                                         // слушатель изменения текста нужен для того,
+            @Override                                                                               // чтобы при изменении написанной в рубляц суммы
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {       // менялась и сумма в валюте
 
             }
 
@@ -123,7 +123,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        button.setOnClickListener(new View.OnClickListener() {
+        button.setOnClickListener(new View.OnClickListener() {                                  // слушатель для кнопки обновления
             @Override
             public void onClick(View view) {
                 jsonString = "";
@@ -144,7 +144,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {       // Swipe обновляет данные аналогично кнопке обновления
             @Override
             public void onRefresh() {
                 button.callOnClick();
@@ -152,9 +152,9 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        Timer timer = new Timer();
-        timer.schedule(new TimerTask() {
-            @Override
+        Timer timer = new Timer();                                                      // Таймер для периодического обновления данных курса валют.
+        timer.schedule(new TimerTask() {                                                // Выставлен на периодичность обновления раз в час
+            @Override                                                                   // после запуска приложения
             public void run() {
                 runOnUiThread(new Runnable() {
                     @Override
@@ -163,7 +163,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
             }
-        }, 0,1000 * 3600);
+        }, 1000 * 3600,1000 * 3600);
 
 
     }
